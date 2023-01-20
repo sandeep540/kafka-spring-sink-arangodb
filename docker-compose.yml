@@ -1,0 +1,49 @@
+version: '3.9'
+services:
+  arangodb:
+    image: arangodb:latest
+    container_name: 'arangodb'
+    environment:
+      ARANGO_ROOT_PASSWORD: rootpassword
+    ports:
+      - 8529:8529
+    volumes:
+      - arangodb_data_container:/var/lib/arangodb3
+      - arangodb_apps_data_container:/var/lib/arangodb3-apps
+    networks:
+      - kafka-network
+
+  redpanda:
+    image: docker.vectorized.io/vectorized/redpanda:latest
+    container_name: redpanda
+    command:
+      - redpanda start
+      - --overprovisioned
+      - --smp 1
+      - --memory 256M
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+      - --kafka-addr 0.0.0.0:9092
+      - --advertise-kafka-addr redpanda:9092
+      - --pandaproxy-addr 0.0.0.0:8082
+      - --advertise-pandaproxy-addr redpanda:8082
+      - --set redpanda.enable_transactions=true
+      - --set redpanda.enable_idempotence=true
+      - --set redpanda.auto_create_topics_enabled=true
+    ports:
+      - 9092:9092
+      - 8081:8081
+      - 8082:8082
+    healthcheck: { test: curl -f localhost:9644/v1/status/ready, interval: 1s, start_period: 30s }
+    networks:
+      - kafka-network
+
+
+volumes:
+  arangodb_data_container:
+  arangodb_apps_data_container:
+
+networks:
+  kafka-network:
+    driver: bridge
