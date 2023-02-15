@@ -7,6 +7,12 @@ public class Product implements Serializable {
         private String name;
         private String brand;
 
+    public Product(String id, String name, String brand) {
+        this.id = id;
+        this.name = name;
+        this.brand = brand;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Product{");
